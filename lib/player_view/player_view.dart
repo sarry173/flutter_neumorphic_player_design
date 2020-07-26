@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:neu_morphic_player/widget/button_widget.dart';
 import 'package:neu_morphic_player/widget/neu_progress_painter.dart';
@@ -16,16 +18,21 @@ class PlayerViewPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    height: 45,
-                    width: 45,
-                    child: ButtonWidget(
-                      bgColor: Color(0xffD9E8FC),
-                      bottomColor: Color(0xffB7C8DF),
-                      topColor: Color(0xffFBFFFF),
-                      child: Icon(
-                        Icons.arrow_back_ios,
-                        color: Colors.grey[400],
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      height: 45,
+                      width: 45,
+                      child: ButtonWidget(
+                        bgColor: Color(0xffD9E8FC),
+                        bottomColor: Color(0xffB7C8DF),
+                        topColor: Color(0xffFBFFFF),
+                        child: Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.grey[400],
+                        ),
                       ),
                     ),
                   ),
@@ -159,21 +166,35 @@ class ProgressCover extends StatefulWidget {
 }
 
 class _ProgressCoverState extends State<ProgressCover> {
-  int timerCount = 0;
+  Timer _timer;
+  int _start = 0;
+
   @override
   void initState() {
     super.initState();
-    countDownTimer();
+    startTimer();
   }
 
-  countDownTimer() async {
-    for (int x = 0; x <= 120; x--) {
-      await Future.delayed(Duration(seconds: 1)).then((_) {
-        setState(() {
-          timerCount += 1;
-        });
-      });
-    }
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timer = new Timer.periodic(
+      oneSec,
+      (Timer timer) => setState(
+        () {
+          if (_start >= 120) {
+            timer.cancel();
+          } else {
+            _start = _start + 1;
+          }
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -188,20 +209,21 @@ class _ProgressCoverState extends State<ProgressCover> {
               bgColor: Color(0xffD9E8FC),
               bottomColor: Color(0xffB7C8DF),
               topColor: Color(0xffFBFFFF),
-              child: SizedBox(
-                height: 300,
+              child: Container(
+                height: MediaQuery.of(context).size.width - 120,
                 child: CustomPaint(
                   painter: NeuProgressPainter(
                     circleWidth: 15,
-                    completedPercentage: timerCount.toDouble(),
+                    completedPercentage: _start.toDouble(),
                     defaultCircleColor: Colors.transparent,
                   ),
                   child: CircleAvatar(
+                    radius: MediaQuery.of(context).size.width - 150,
                     backgroundColor: Color(0xffF6FEFE),
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: CircleAvatar(
-                        radius: 300,
+                        radius: MediaQuery.of(context).size.width - 150,
                         backgroundImage: NetworkImage(
                             "https://is2-ssl.mzstatic.com/image/thumb/Music123/v4/7b/9a/eb/7b9aeb84-34d2-e7fc-31ae-869d7a5ff5a7/source/450x450bb.jpg"),
                       ),
